@@ -23,6 +23,11 @@
 
 (defconst twelio-base-url "https://%s:%s@api.twilio.com/2010-04-01")
 
+(defcustom twelio-number nil
+  "The phone number to send messages from."
+  :group 'twelio
+  :type 'string)
+
 (defcustom twelio-account-sid nil
   "The account SID to use if not specified."
   :group 'twelio
@@ -33,11 +38,11 @@
   :group 'twelio
   :type 'string)
 
-(cl-defun twelio-send-message (from to
-                                    &key
-                                    (sid twelio-account-sid)
-                                    (message nil)
-                                    (authtoken twelio-auth-token))
+(cl-defun twelio-send-message (to message
+                                  &key
+                                  (from twelio-number)
+                                  (sid twelio-account-sid)
+                                  (authtoken twelio-auth-token))
   "Send MESSAGE from FROM as an SMS or MMS to TO.
 Uses SID if given, otherwise uses twelio-account-sid.
 If no MESSAGE is given, sends the current buffer."
@@ -46,12 +51,9 @@ If no MESSAGE is given, sends the current buffer."
            (format twelio-base-url sid authtoken) sid)
    :type "POST"
    :parser 'json-read
-   :files (when (not message)
-            `(("Body" . ,(current-buffer))))
    :data `(("To" . ,to)
            ("From" . ,from)
-           ,(when message
-              (cons "Body" message)))))
+           ("Body" . ,message))))
 
 (provide 'twelio)
 
